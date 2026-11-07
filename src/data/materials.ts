@@ -16,6 +16,7 @@ export interface MeasurementConditions {
   frequencyHz: number;
   frequencyLabel: string;
   temperatureC: number;
+  permittivityRegime: "static" | "frequency-dependent";
   notes: string;
 }
 
@@ -33,9 +34,12 @@ export interface DielectricMaterial {
   verificationStatus: "pending";
 }
 
-// Values are typical literature ranges. They are not verified against the cited
-// sources and must be checked before release. Dielectric properties depend on
-// frequency, temperature, purity, moisture and processing.
+// Values are approximate literature values and have NOT been checked against the cited
+// sources. "typical" is a representative value under the stated measurement conditions.
+// "min" and "max" are editorial bounds for grade-to-grade spread, not taken from any source.
+// A null lossTangent means no single value applies (conductivity-dependent); the
+// lossTangentNote explains why. All values depend on frequency, temperature, purity,
+// moisture and processing.
 export const materials: DielectricMaterial[] = [
   {
     id: "polymer-ptfe",
@@ -55,10 +59,11 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 1e6,
       frequencyLabel: "1 MHz",
       temperatureC: 23,
+      permittivityRegime: "frequency-dependent",
       notes: "Unfilled bulk sample.",
     },
     source:
-      "Callister & Rethwisch, Materials Science and Engineering (Wiley), dielectric properties table; CRC Handbook of Chemistry and Physics (CRC Press), electrical properties tables.",
+      "Candidate reference (not checked): Callister & Rethwisch, Materials Science and Engineering (Wiley); CRC Handbook of Chemistry and Physics (CRC Press).",
     verificationStatus: "pending",
   },
   {
@@ -74,15 +79,16 @@ export const materials: DielectricMaterial[] = [
     ],
     relativePermittivity: { typical: 2.25, min: 2.2, max: 2.35 },
     lossTangent: { typical: 0.0002, min: 0.0001, max: 0.0005 },
-    lossTangentNote: "Low loss; increases with crystallinity and impurity content.",
+    lossTangentNote: "Low loss; depends on impurity and oxidation content.",
     measurement: {
       frequencyHz: 1e6,
       frequencyLabel: "1 MHz",
       temperatureC: 25,
+      permittivityRegime: "frequency-dependent",
       notes: "Grade and crystallinity affect values.",
     },
     source:
-      "Callister & Rethwisch, Materials Science and Engineering (Wiley), dielectric properties table; Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
+      "Candidate reference (not checked): Callister & Rethwisch, Materials Science and Engineering (Wiley); Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
     verificationStatus: "pending",
   },
   {
@@ -98,15 +104,16 @@ export const materials: DielectricMaterial[] = [
     ],
     relativePermittivity: { typical: 2.55, min: 2.4, max: 2.7 },
     lossTangent: { typical: 0.0002, min: 0.0001, max: 0.0005 },
-    lossTangentNote: "Low loss at radio frequencies; rises near its glass transition.",
+    lossTangentNote: "Low loss at radio frequencies; loss rises near its glass transition.",
     measurement: {
       frequencyHz: 1e6,
       frequencyLabel: "1 MHz",
       temperatureC: 25,
+      permittivityRegime: "frequency-dependent",
       notes: "Amorphous bulk sample.",
     },
     source:
-      "Kao, Dielectric Phenomena in Solids (Elsevier, 2004); CRC Handbook of Chemistry and Physics (CRC Press), electrical properties tables.",
+      "Candidate reference (not checked): Kao, Dielectric Phenomena in Solids (Elsevier, 2004); CRC Handbook of Chemistry and Physics (CRC Press).",
     verificationStatus: "pending",
   },
   {
@@ -114,7 +121,7 @@ export const materials: DielectricMaterial[] = [
     name: "Polyimide (Kapton-type film)",
     category: "polymer",
     description:
-      "High-temperature aromatic polymer film with stable insulation properties from cryogenic to elevated temperatures.",
+      "High-temperature aromatic polymer film that retains its insulation properties over a wide temperature range.",
     applications: [
       "Flexible printed circuits",
       "Motor slot and winding insulation",
@@ -127,10 +134,11 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 1e3,
       frequencyLabel: "1 kHz",
       temperatureC: 23,
+      permittivityRegime: "frequency-dependent",
       notes: "Film grade and moisture content affect values.",
     },
     source:
-      "Manufacturer datasheet for Kapton polyimide film (DuPont); Callister & Rethwisch, Materials Science and Engineering (Wiley).",
+      "Candidate reference (not checked): manufacturer datasheet for Kapton polyimide film (DuPont); Callister & Rethwisch, Materials Science and Engineering (Wiley).",
     verificationStatus: "pending",
   },
   {
@@ -151,10 +159,11 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 1e6,
       frequencyLabel: "1 MHz",
       temperatureC: 25,
+      permittivityRegime: "frequency-dependent",
       notes: "Cured unfilled resin; filled grades differ.",
     },
     source:
-      "Callister & Rethwisch, Materials Science and Engineering (Wiley), dielectric properties table; Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
+      "Candidate reference (not checked): Callister & Rethwisch, Materials Science and Engineering (Wiley); Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
     verificationStatus: "pending",
   },
   {
@@ -175,10 +184,11 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 1e6,
       frequencyLabel: "1 MHz",
       temperatureC: 25,
+      permittivityRegime: "frequency-dependent",
       notes: "Sintered 96% grade; higher purity grades differ.",
     },
     source:
-      "CRC Handbook of Chemistry and Physics (CRC Press), electrical properties tables; Callister & Rethwisch, Materials Science and Engineering (Wiley).",
+      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press); Callister & Rethwisch, Materials Science and Engineering (Wiley).",
     verificationStatus: "pending",
   },
   {
@@ -186,7 +196,7 @@ export const materials: DielectricMaterial[] = [
     name: "Barium titanate (BaTiO3, polycrystalline)",
     category: "ceramic",
     description:
-      "Ferroelectric ceramic with very high permittivity that peaks near its Curie temperature of about 120 C.",
+      "Ferroelectric ceramic with very high permittivity that peaks near its Curie temperature of about 120 °C.",
     applications: [
       "Multilayer ceramic capacitors",
       "Piezoelectric and ferroelectric transducers",
@@ -194,15 +204,17 @@ export const materials: DielectricMaterial[] = [
     ],
     relativePermittivity: { typical: 1500, min: 1000, max: 5000 },
     lossTangent: { typical: 0.015, min: 0.005, max: 0.03 },
-    lossTangentNote: "Loss and permittivity vary strongly with temperature, bias field and dopants.",
+    lossTangentNote: "Loss and permittivity vary strongly with temperature, DC bias field and dopants.",
     measurement: {
       frequencyHz: 1e3,
       frequencyLabel: "1 kHz",
       temperatureC: 25,
-      notes: "Well below the Curie temperature; values change sharply near it.",
+      permittivityRegime: "frequency-dependent",
+      notes:
+        "Well below the Curie temperature, which depends on composition; values change sharply near it. Commercial grades span a wide range, so the typical value is representative only.",
     },
     source:
-      "Kao, Dielectric Phenomena in Solids (Elsevier, 2004); CRC Handbook of Chemistry and Physics (CRC Press), electrical properties tables.",
+      "Candidate reference (not checked): Kao, Dielectric Phenomena in Solids (Elsevier, 2004); CRC Handbook of Chemistry and Physics (CRC Press).",
     verificationStatus: "pending",
   },
   {
@@ -210,7 +222,7 @@ export const materials: DielectricMaterial[] = [
     name: "Steatite (magnesium silicate ceramic)",
     category: "ceramic",
     description:
-      "Low-loss talc-based ceramic historically used for radio-frequency insulators and components.",
+      "Relatively low-loss talc-based ceramic historically used for radio-frequency insulators and components.",
     applications: [
       "RF connector insulators",
       "Resistor and coil formers",
@@ -223,10 +235,11 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 1e6,
       frequencyLabel: "1 MHz",
       temperatureC: 25,
+      permittivityRegime: "frequency-dependent",
       notes: "Commercial grade; composition varies by supplier.",
     },
     source:
-      "Callister & Rethwisch, Materials Science and Engineering (Wiley), ceramic dielectric properties; manufacturer datasheets for steatite grades.",
+      "Candidate reference (not checked): manufacturer datasheets for steatite grades; general ceramic dielectric references (to be identified).",
     verificationStatus: "pending",
   },
   {
@@ -242,15 +255,16 @@ export const materials: DielectricMaterial[] = [
     ],
     relativePermittivity: { typical: 3.8, min: 3.78, max: 3.82 },
     lossTangent: { typical: 0.0001, min: 0.00005, max: 0.0003 },
-    lossTangentNote: "Very low loss; OH content and metallic impurities raise loss.",
+    lossTangentNote: "Very low loss; impurities, including OH groups, can raise loss.",
     measurement: {
       frequencyHz: 1e6,
       frequencyLabel: "1 MHz",
       temperatureC: 25,
+      permittivityRegime: "frequency-dependent",
       notes: "High-purity synthetic grade.",
     },
     source:
-      "CRC Handbook of Chemistry and Physics (CRC Press), electrical properties tables; Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
+      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press); Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
     verificationStatus: "pending",
   },
   {
@@ -271,10 +285,11 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 1e6,
       frequencyLabel: "1 MHz",
       temperatureC: 25,
+      permittivityRegime: "frequency-dependent",
       notes: "Composition varies by manufacturer.",
     },
     source:
-      "CRC Handbook of Chemistry and Physics (CRC Press), electrical properties tables; Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
+      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press); Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
     verificationStatus: "pending",
   },
   {
@@ -295,10 +310,11 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 1e6,
       frequencyLabel: "1 MHz",
       temperatureC: 25,
+      permittivityRegime: "frequency-dependent",
       notes: "Commercial borosilicate grade.",
     },
     source:
-      "CRC Handbook of Chemistry and Physics (CRC Press), electrical properties tables; Callister & Rethwisch, Materials Science and Engineering (Wiley).",
+      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press); Callister & Rethwisch, Materials Science and Engineering (Wiley).",
     verificationStatus: "pending",
   },
   {
@@ -319,10 +335,11 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 1e6,
       frequencyLabel: "1 MHz",
       temperatureC: 25,
+      permittivityRegime: "frequency-dependent",
       notes: "Natural sheet; orientation-dependent.",
     },
     source:
-      "CRC Handbook of Chemistry and Physics (CRC Press), electrical properties tables; Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
+      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press); Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
     verificationStatus: "pending",
   },
   {
@@ -330,7 +347,7 @@ export const materials: DielectricMaterial[] = [
     name: "Quartz (crystalline SiO2)",
     category: "natural",
     description:
-      "Crystalline silica with low loss and piezoelectric behaviour, so it both stores charge and converts stress to voltage.",
+      "Crystalline silica with low loss and piezoelectric behaviour: it converts mechanical stress into voltage and back.",
     applications: [
       "Frequency-control crystal resonators",
       "Piezoelectric sensors",
@@ -343,10 +360,11 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 1e6,
       frequencyLabel: "1 MHz",
       temperatureC: 25,
+      permittivityRegime: "frequency-dependent",
       notes: "Values quoted perpendicular to the c-axis; anisotropic.",
     },
     source:
-      "CRC Handbook of Chemistry and Physics (CRC Press), electrical properties tables; Kittel, Introduction to Solid State Physics (Wiley).",
+      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press); Kittel, Introduction to Solid State Physics (Wiley).",
     verificationStatus: "pending",
   },
   {
@@ -366,10 +384,12 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 1e6,
       frequencyLabel: "1 MHz",
       temperatureC: 20,
-      notes: "Oven-dried sample; values depend on grain direction.",
+      permittivityRegime: "frequency-dependent",
+      notes:
+        "Oven-dried sample; values depend on grain direction and density. In service, moisture content changes values strongly.",
     },
     source:
-      "Kollmann and Cote, Principles of Wood Science and Technology (Springer); CRC Handbook of Chemistry and Physics (CRC Press), electrical properties tables.",
+      "Candidate reference (not checked): Kollmann and Cote, Principles of Wood Science and Technology (Springer); CRC Handbook of Chemistry and Physics (CRC Press).",
     verificationStatus: "pending",
   },
   {
@@ -390,10 +410,12 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 50,
       frequencyLabel: "50 Hz",
       temperatureC: 25,
-      notes: "Unaged oil; grade and water content matter.",
+      permittivityRegime: "frequency-dependent",
+      notes:
+        "Unaged oil; grade and water content matter. Oil testing is often specified at elevated temperature, so these values at 25 °C may not match test-standard results.",
     },
     source:
-      "Manufacturer and standards-based insulating oil data (typical for naphthenic and paraffinic grades); CRC Handbook of Chemistry and Physics (CRC Press), electrical properties tables.",
+      "Candidate reference (not checked): IEC 60296 (unused mineral insulating oils for transformers and switchgear); CRC Handbook of Chemistry and Physics (CRC Press).",
     verificationStatus: "pending",
   },
   {
@@ -412,13 +434,15 @@ export const materials: DielectricMaterial[] = [
     lossTangentNote:
       "Not a single value: loss is dominated by ionic conductivity and depends on purity, frequency and temperature.",
     measurement: {
-      frequencyHz: 1e3,
-      frequencyLabel: "1 kHz",
+      frequencyHz: 0,
+      frequencyLabel: "Static (low-frequency limit)",
       temperatureC: 25,
-      notes: "Permittivity is frequency-dependent and falls substantially in the GHz range.",
+      permittivityRegime: "static",
+      notes:
+        "Low-frequency limit. Permittivity falls as frequency rises toward the microwave range and decreases as temperature rises.",
     },
     source:
-      "CRC Handbook of Chemistry and Physics (CRC Press), dielectric constant of water table; Kittel, Introduction to Solid State Physics (Wiley).",
+      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press), dielectric constant of water table.",
     verificationStatus: "pending",
   },
   {
@@ -440,10 +464,11 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 0,
       frequencyLabel: "Static (DC)",
       temperatureC: 27,
-      notes: "Room-temperature value; approximately 300 K.",
+      permittivityRegime: "static",
+      notes: "Static (low-frequency) value near 300 K.",
     },
     source:
-      "Kittel, Introduction to Solid State Physics (Wiley); CRC Handbook of Chemistry and Physics (CRC Press), semiconductor properties tables.",
+      "Candidate reference (not checked): Kittel, Introduction to Solid State Physics (Wiley); CRC Handbook of Chemistry and Physics (CRC Press), semiconductor tables.",
     verificationStatus: "pending",
   },
   {
@@ -465,10 +490,11 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 0,
       frequencyLabel: "Static (DC)",
       temperatureC: 27,
-      notes: "Room-temperature value; approximately 300 K.",
+      permittivityRegime: "static",
+      notes: "Static (low-frequency) value near 300 K.",
     },
     source:
-      "Kittel, Introduction to Solid State Physics (Wiley); CRC Handbook of Chemistry and Physics (CRC Press), semiconductor properties tables.",
+      "Candidate reference (not checked): Kittel, Introduction to Solid State Physics (Wiley); CRC Handbook of Chemistry and Physics (CRC Press), semiconductor tables.",
     verificationStatus: "pending",
   },
   {
@@ -490,10 +516,11 @@ export const materials: DielectricMaterial[] = [
       frequencyHz: 0,
       frequencyLabel: "Static (DC)",
       temperatureC: 27,
-      notes: "Room-temperature value; approximately 300 K.",
+      permittivityRegime: "static",
+      notes: "Static (low-frequency) value near 300 K.",
     },
     source:
-      "Kittel, Introduction to Solid State Physics (Wiley); CRC Handbook of Chemistry and Physics (CRC Press), semiconductor properties tables.",
+      "Candidate reference (not checked): Kittel, Introduction to Solid State Physics (Wiley); CRC Handbook of Chemistry and Physics (CRC Press), semiconductor tables.",
     verificationStatus: "pending",
   },
 ];
