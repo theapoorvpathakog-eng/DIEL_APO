@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DIEL_APO</string>
+    <string name="title_activity_main">DIEL_APO</string>
+    <string name="package_name">com.dielapo.app</string>
+    <string name="custom_url_scheme">com.dielapo.app</string>
+</resources>

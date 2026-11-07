@@ -12,3 +12,12 @@ vitest.config.cjs.timestamp-*.mjs
 vitest.config.ts.timestamp-*.mjs
 vitest.config.mts.timestamp-*.mjs
 vitest.config.cts.timestamp-*.mjs
+dist/
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+*.keystore
+*.jks
+*.apk
+*.aab
