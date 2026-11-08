@@ -43,7 +43,6 @@ export interface DielectricMaterial {
   lossTangent: PropertyRange | null;
   lossTangentNote: string | null;
   sourceIds: string[];
-  verificationStatus: "pending";
 }
 
 export interface DielectricSource {
@@ -365,7 +364,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S2", "S3"],
-    verificationStatus: "pending",
   },
   {
     id: "polymer-polyethylene",
@@ -401,7 +399,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S4"],
-    verificationStatus: "pending",
   },
   {
     id: "polymer-polystyrene",
@@ -437,7 +434,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S4", "S5", "S6"],
-    verificationStatus: "pending",
   },
   {
     id: "polymer-polyimide",
@@ -473,7 +469,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S1"],
-    verificationStatus: "pending",
   },
   {
     id: "polymer-epoxy",
@@ -509,7 +504,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S7", "S8"],
-    verificationStatus: "pending",
   },
   {
     id: "ceramic-alumina",
@@ -545,7 +539,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S9", "S10", "S11"],
-    verificationStatus: "pending",
   },
   {
     id: "ceramic-batio3",
@@ -581,7 +574,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S12", "S13", "S14"],
-    verificationStatus: "pending",
   },
   {
     id: "ceramic-steatite",
@@ -617,7 +609,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S15", "S16"],
-    verificationStatus: "pending",
   },
   {
     id: "glass-fused-silica",
@@ -653,7 +644,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S17", "S18"],
-    verificationStatus: "pending",
   },
   {
     id: "glass-soda-lime",
@@ -689,7 +679,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S19", "S34"],
-    verificationStatus: "pending",
   },
   {
     id: "glass-borosilicate",
@@ -725,7 +714,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S20"],
-    verificationStatus: "pending",
   },
   {
     id: "natural-muscovite-mica",
@@ -761,7 +749,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S21"],
-    verificationStatus: "pending",
   },
   {
     id: "natural-quartz",
@@ -797,7 +784,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S22", "S23"],
-    verificationStatus: "pending",
   },
   {
     id: "natural-dry-pine-wood",
@@ -832,7 +818,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: [],
-    verificationStatus: "pending",
   },
   {
     id: "liquid-mineral-oil",
@@ -868,7 +853,6 @@ export const materials: DielectricMaterial[] = [
     },
     lossTangentNote: null,
     sourceIds: ["S24", "S25"],
-    verificationStatus: "pending",
   },
   {
     id: "liquid-deionized-water",
@@ -897,7 +881,6 @@ export const materials: DielectricMaterial[] = [
     lossTangentNote:
       "Not a single value: at low frequency, ionic conduction and electrode polarization dominate, and no intrinsic loss tangent is defined below the relaxation region.",
     sourceIds: ["S26", "S27", "S28"],
-    verificationStatus: "pending",
   },
   {
     id: "semiconductor-silicon",
@@ -926,7 +909,6 @@ export const materials: DielectricMaterial[] = [
     lossTangentNote:
       "Not a single value: loss depends on free-carrier density set by doping and resistivity, and no sourced value was found.",
     sourceIds: ["S29", "S30"],
-    verificationStatus: "pending",
   },
   {
     id: "semiconductor-germanium",
@@ -955,7 +937,6 @@ export const materials: DielectricMaterial[] = [
     lossTangentNote:
       "Not a single value: loss depends on free-carrier density set by doping and resistivity, and no sourced value was found.",
     sourceIds: ["S29", "S30"],
-    verificationStatus: "pending",
   },
   {
     id: "semiconductor-gallium-arsenide",
@@ -984,6 +965,5 @@ export const materials: DielectricMaterial[] = [
     lossTangentNote:
       "Not a single value: loss depends on free-carrier density, doping and frequency, and no sourced value was found.",
     sourceIds: ["S29", "S30", "S31", "S32"],
-    verificationStatus: "pending",
   },
 ];
