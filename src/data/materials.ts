@@ -6,45 +6,336 @@ export type MaterialCategory =
   | "liquid"
   | "semiconductor";
 
+// VERIFIED: matches a retrieved source under the stated conditions.
+// VERIFIED-RANGE: supported, but source spread or grade dependence is large.
+// CORRECT: replaces an earlier value that the sources do not support.
+// QUESTIONABLE: not supported as stated; use with caution.
+// UNVERIFIED: no usable source retrieved; values are null or shown as unverified.
+export type AuditStatus = "VERIFIED" | "VERIFIED-RANGE" | "CORRECT" | "QUESTIONABLE" | "UNVERIFIED";
+
+export type PermittivityKind = "static" | "frequency-dependent" | "anisotropic" | "temperature-dependent";
+
+// Every numeric field is null when unknown. Zero is never used as a placeholder.
 export interface PropertyRange {
-  typical: number;
-  min: number;
-  max: number;
+  typical: number | null;
+  min: number | null;
+  max: number | null;
+  frequencyHz: number | null;
+  temperatureC: number | null;
+  status: AuditStatus;
+  note: string;
 }
 
-export interface MeasurementConditions {
-  frequencyHz: number;
-  frequencyLabel: string;
-  temperatureC: number;
-  permittivityRegime: "static" | "frequency-dependent";
-  notes: string;
+export interface PermittivityRange extends PropertyRange {
+  kind: PermittivityKind | null;
+  highFrequency: number | null;
 }
 
 export interface DielectricMaterial {
   id: string;
   name: string;
   category: MaterialCategory;
+  grade: string | null;
   description: string;
   applications: string[];
-  relativePermittivity: PropertyRange;
+  relativePermittivity: PermittivityRange;
+  // null means no single loss tangent applies; lossTangentNote then explains why.
   lossTangent: PropertyRange | null;
-  lossTangentNote: string;
-  measurement: MeasurementConditions;
-  source: string;
+  lossTangentNote: string | null;
+  sourceIds: string[];
   verificationStatus: "pending";
 }
 
-// Values are approximate literature values and have NOT been checked against the cited
-// sources. "typical" is a representative value under the stated measurement conditions.
-// "min" and "max" are editorial bounds for grade-to-grade spread, not taken from any source.
-// A null lossTangent means no single value applies (conductivity-dependent); the
-// lossTangentNote explains why. All values depend on frequency, temperature, purity,
-// moisture and processing.
+export interface DielectricSource {
+  id: string;
+  title: string;
+  organization: string;
+  year: string | null;
+  type: string;
+  url: string | null;
+}
+
+export const dielectricSources: DielectricSource[] = [
+  {
+    id: "S1",
+    title: "DuPont Kapton HN polyimide film - Technical Data Sheet (K-15345-1; later EI-10206)",
+    organization: "DuPont",
+    year: "2011 / 2021",
+    type: "manufacturer",
+    url: "https://www.epectec.com/downloads/DuPont-Kapton-HN-Polyimide-Film.pdf",
+  },
+  {
+    id: "S2",
+    title: "Teflon PTFE datasheet",
+    organization: "Professional Plastics",
+    year: null,
+    type: "supplier",
+    url: "https://www.professionalplastics.com/professionalplastics/content/downloads/Teflon_PTFE.pdf",
+  },
+  {
+    id: "S3",
+    title: "PTFE product page",
+    organization: "Goodfellow",
+    year: null,
+    type: "supplier",
+    url: "https://www.goodfellow.com/eu/ptfe-coil-group",
+  },
+  {
+    id: "S4",
+    title: "Electrical Properties of Plastic Materials",
+    organization: "Professional Plastics",
+    year: null,
+    type: "supplier",
+    url: "https://www.professionalplastics.com/professionalplastics/content/downloads/ElectricalPropertiesofPlastics.pdf",
+  },
+  {
+    id: "S5",
+    title: "PS film product page",
+    organization: "Goodfellow",
+    year: null,
+    type: "supplier",
+    url: "https://www.goodfellow.com/usa/ps-film-group",
+  },
+  {
+    id: "S6",
+    title: "Technical Datasheet - Polystyrene Virgin (high-impact grade)",
+    organization: "Styreniques (via sunclear.fr)",
+    year: "2021",
+    type: "manufacturer",
+    url: "https://www.sunclear.fr/img/medias/bt/STYRENIQUES_PS_CHOC__PLAXE_BLANC_fiche_technique_030321.pdf",
+  },
+  {
+    id: "S7",
+    title: "Evaluating electrically insulating epoxies",
+    organization: "Tech Briefs",
+    year: null,
+    type: "trade article",
+    url: "https://www.techbriefs.com/component/content/article/tb/pub/features/articles/20977",
+  },
+  {
+    id: "S8",
+    title: "Tech Tip 25: Dielectric Properties of Epoxies",
+    organization: "EPO-TEK",
+    year: null,
+    type: "manufacturer",
+    url: "https://epotek.com/docs/en/Related/Tech%20Tip%2025%20Dielectric%20Properties%20of%20Epoxies.pdf",
+  },
+  {
+    id: "S9",
+    title: "Ceramic Seal Material Properties",
+    organization: "CoorsTek",
+    year: "2018",
+    type: "manufacturer",
+    url: "https://coorstek.com/media/4216/ceramic-seal-material-properties.pdf",
+  },
+  {
+    id: "S10",
+    title: "Aluminum Oxide, Al2O3 Ceramic Properties",
+    organization: "Accuratus",
+    year: null,
+    type: "supplier",
+    url: "https://accuratus.com/alumox.html",
+  },
+  {
+    id: "S11",
+    title: "Alumina dielectric measurements (IPAC 2015, paper WEPTY050; title/authors not captured)",
+    organization: "IPAC / CERN accelconf",
+    year: "2015",
+    type: "conference paper",
+    url: "https://accelconf.web.cern.ch/IPAC2015/papers/wepty050.pdf",
+  },
+  {
+    id: "S12",
+    title: "BaTiO3 ceramics paper, Materials 16(8), 3031 (title/authors not captured)",
+    organization: "MDPI",
+    year: "2023",
+    type: "journal",
+    url: "https://dx.doi.org/10.3390/ma16083031",
+  },
+  {
+    id: "S13",
+    title: "Barium titanate ceramics prepared from conventional and microwave hydrothermal powders",
+    organization: "Penn State record",
+    year: null,
+    type: "journal record",
+    url: "https://pure.psu.edu/en/publications/barium-titanate-ceramics-prepared-from-conventional-and-microwave/",
+  },
+  {
+    id: "S14",
+    title: "Characterization of barium titanate: BaTiO3 (BT) ceramics prepared from sol-gel derived BT powders (ISSN 1385-3449 as listed)",
+    organization: "NCL library record",
+    year: null,
+    type: "journal record",
+    url: "https://library.ncl.res.in/node/40752",
+  },
+  {
+    id: "S15",
+    title: "Steatite (summary ranges across IEC 60672 types)",
+    organization: "MakeItFrom",
+    year: null,
+    type: "aggregator",
+    url: "https://www.makeitfrom.com/compare/Steatite/Steatite",
+  },
+  {
+    id: "S16",
+    title: "Steatite ceramics",
+    organization: "Samel-90",
+    year: null,
+    type: "supplier",
+    url: "https://samel90.com/en/products/steatite-ceramics",
+  },
+  {
+    id: "S17",
+    title: "HPFS 7980 Wafer Grade Material Properties (product information)",
+    organization: "Corning",
+    year: "2017",
+    type: "manufacturer",
+    url: "https://www.corning.com/media/worldwide/csm/documents/CorningHPFSFusedSilicaWafer_PI.pdf",
+  },
+  {
+    id: "S18",
+    title: "Fused Silica Material Properties",
+    organization: "Accuratus",
+    year: null,
+    type: "supplier",
+    url: "https://Accuratus.com/pdf/SiO2props.pdf",
+  },
+  {
+    id: "S19",
+    title: "SCHOTT B 270 - Clear Crown Glass (modified soda-lime)",
+    organization: "SCHOTT (via pgo-online.com)",
+    year: null,
+    type: "manufacturer",
+    url: "https://www.pgo-online.com/intl/B270.html",
+  },
+  {
+    id: "S20",
+    title: "BOROFLOAT 33 - Technical Data",
+    organization: "SCHOTT",
+    year: null,
+    type: "manufacturer",
+    url: "https://www.edmundoptics.com/ViewDocument/schott-borofloat-technical-data-sheet-english.pdf",
+  },
+  {
+    id: "S21",
+    title: "Muscovite mica sheet (properties list)",
+    organization: "EMS Diasum",
+    year: null,
+    type: "supplier",
+    url: "https://www.emsdiasum.com/mica-sheet-v2-25-x-75mm",
+  },
+  {
+    id: "S22",
+    title: "Dielectric Constants of Quartz, J. Appl. Phys. 43(4), 1493-1495; DOI 10.1063/1.1661347",
+    organization: "AIP Publishing (authors not captured)",
+    year: "1972",
+    type: "journal",
+    url: "https://www.scilit.net/publications/857a57badafa2ed067294516a31cd2ca",
+  },
+  {
+    id: "S23",
+    title: "Synthetic quartz dielectric constant and loss (title/journal not captured)",
+    organization: "Springer",
+    year: null,
+    type: "journal",
+    url: "https://link.springer.com/article/10.1007/BF01174702",
+  },
+  {
+    id: "S24",
+    title: "IEC 60296:2020 Ed. 5.0, Mineral insulating oils for electrical equipment",
+    organization: "IEC",
+    year: "2020",
+    type: "standard",
+    url: "https://www.vde-verlag.de/iec-normen/preview-pdf/info_iec60296{ed5.0}b.pdf",
+  },
+  {
+    id: "S25",
+    title: "Maker Electra 2X insulating oil datasheet",
+    organization: "Repsol",
+    year: null,
+    type: "manufacturer",
+    url: "https://lubricants.repsol.com/content/dam/repsol-lubricantes/en/productos-y-servicios/lubricantes-documentos/maker-electra-2x.pdf",
+  },
+  {
+    id: "S26",
+    title: "High-precision gigahertz-to-terahertz spectroscopy of aqueous salt solutions (arXiv:1505.07100)",
+    organization: "authors not captured",
+    year: null,
+    type: "preprint",
+    url: "https://arxiv.org/pdf/1505.07100",
+  },
+  {
+    id: "S27",
+    title: "Static dielectric constant of pure water at 25 °C (BioNumbers 115815; cites Theillet et al., Chem. Rev. 114(13), 6661-6714, 2014, DOI 10.1021/cr400695p)",
+    organization: "Harvard BioNumbers",
+    year: null,
+    type: "database",
+    url: "https://bionumbers.hms.harvard.edu/bionumber.aspx?id=115815",
+  },
+  {
+    id: "S28",
+    title: "Proton Electrodynamics in Liquid Water (arXiv:1302.5048)",
+    organization: "authors not captured",
+    year: null,
+    type: "preprint",
+    url: "https://arxiv.org/pdf/1302.5048",
+  },
+  {
+    id: "S29",
+    title: "Basic Questions (semiconductor property table)",
+    organization: "Univ. of Kiel, Materials Science",
+    year: null,
+    type: "course material",
+    url: "https://www.tf.uni-kiel.de/matwis/amat/semi_en/kap_5/backbone/r5_1_1.html",
+  },
+  {
+    id: "S30",
+    title: "Semiconductor Constants",
+    organization: "BYU Cleanroom",
+    year: null,
+    type: "lab reference",
+    url: "https://www.cleanroom.byu.edu/Semiconductor-Constants",
+  },
+  {
+    id: "S31",
+    title: "AlGaAs basic parameters (x = 0 gives GaAs)",
+    organization: "Ioffe Institute NSM Archive",
+    year: null,
+    type: "database",
+    url: "https://www.ioffe.ru/SVA/NSM/Semicond/AlGaAs/basic.html",
+  },
+  {
+    id: "S32",
+    title: "Dielectric response input parameters for GaAs at 300 K (Table 5)",
+    organization: "J. Res. NIST, hosted on PMC",
+    year: null,
+    type: "journal",
+    url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC4656012/table/t5-v112.n04.a03",
+  },
+  {
+    id: "S33",
+    title: "Dielectric Properties of Wood and Wood-Based Materials (ch. 4: oven-dry wood); recommended, numeric values not read",
+    organization: "G. I. Torgovnikov, Springer",
+    year: "1993",
+    type: "book",
+    url: null,
+  },
+  {
+    id: "S34",
+    title: "Soda lime float glass properties",
+    organization: "Valley Design",
+    year: null,
+    type: "supplier",
+    url: "https://valleydesign.com/sodalime/",
+  },
+];
+
 export const materials: DielectricMaterial[] = [
   {
     id: "polymer-ptfe",
     name: "Polytetrafluoroethylene (PTFE)",
     category: "polymer",
+    grade: "Unfilled PTFE",
     description:
       "Fluoropolymer with very low dielectric loss and chemical inertness across a wide temperature range.",
     applications: [
@@ -52,24 +343,35 @@ export const materials: DielectricMaterial[] = [
       "RF and microwave circuit substrates",
       "Chemically resistant seals and liners",
     ],
-    relativePermittivity: { typical: 2.1, min: 2.0, max: 2.1 },
-    lossTangent: { typical: 0.0002, min: 0.0001, max: 0.0003 },
-    lossTangentNote: "Very low loss; sensitive to filler content in composites.",
-    measurement: {
+    relativePermittivity: {
+      typical: 2.1,
+      min: 2.0,
+      max: 2.1,
       frequencyHz: 1e6,
-      frequencyLabel: "1 MHz",
-      temperatureC: 23,
-      permittivityRegime: "frequency-dependent",
-      notes: "Unfilled bulk sample.",
+      temperatureC: null,
+      status: "VERIFIED-RANGE",
+      kind: "frequency-dependent",
+      highFrequency: null,
+      note: "Datasheet 2.1 and supplier range 2.0-2.1 at 1 MHz. No retrieved source states the temperature.",
     },
-    source:
-      "Candidate reference (not checked): Callister & Rethwisch, Materials Science and Engineering (Wiley); CRC Handbook of Chemistry and Physics (CRC Press).",
+    lossTangent: {
+      typical: null,
+      min: null,
+      max: 7e-4,
+      frequencyHz: 1e6,
+      temperatureC: null,
+      status: "VERIFIED-RANGE",
+      note: "One datasheet gives below 2e-4 (typical values, ASTM D150). Another supplier gives 3e-4 to 7e-4. Maximum shows the upper end of the supplier range.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S2", "S3"],
     verificationStatus: "pending",
   },
   {
     id: "polymer-polyethylene",
     name: "Polyethylene (LDPE / HDPE)",
     category: "polymer",
+    grade: "LDPE and HDPE (range across grades)",
     description:
       "Nonpolar thermoplastic with low permittivity and low loss, widely used as an insulator.",
     applications: [
@@ -77,24 +379,35 @@ export const materials: DielectricMaterial[] = [
       "Dielectric films",
       "Radome and window materials at microwave frequencies",
     ],
-    relativePermittivity: { typical: 2.25, min: 2.2, max: 2.35 },
-    lossTangent: { typical: 0.0002, min: 0.0001, max: 0.0005 },
-    lossTangentNote: "Low loss; depends on impurity and oxidation content.",
-    measurement: {
+    relativePermittivity: {
+      typical: null,
+      min: 2.2,
+      max: 2.4,
       frequencyHz: 1e6,
-      frequencyLabel: "1 MHz",
-      temperatureC: 25,
-      permittivityRegime: "frequency-dependent",
-      notes: "Grade and crystallinity affect values.",
+      temperatureC: null,
+      status: "VERIFIED-RANGE",
+      kind: "frequency-dependent",
+      highFrequency: null,
+      note: "Supplier table at 1 MHz: LDPE 2.2-2.35, HDPE 2.3-2.4. Grade-specific values are not separated.",
     },
-    source:
-      "Candidate reference (not checked): Callister & Rethwisch, Materials Science and Engineering (Wiley); Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
+    lossTangent: {
+      typical: null,
+      min: 1e-4,
+      max: 1e-3,
+      frequencyHz: 1e6,
+      temperatureC: null,
+      status: "VERIFIED-RANGE",
+      note: "Dissipation factor 1-10 x 10^-4 at 1 MHz (supplier table). Temperature not stated.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S4"],
     verificationStatus: "pending",
   },
   {
     id: "polymer-polystyrene",
     name: "Polystyrene",
     category: "polymer",
+    grade: "General purpose (grade-dependent)",
     description:
       "Amorphous thermoplastic with low loss and stable permittivity at radio frequencies.",
     applications: [
@@ -102,24 +415,35 @@ export const materials: DielectricMaterial[] = [
       "RF insulating components",
       "Laboratory and calibration standards",
     ],
-    relativePermittivity: { typical: 2.55, min: 2.4, max: 2.7 },
-    lossTangent: { typical: 0.0002, min: 0.0001, max: 0.0005 },
-    lossTangentNote: "Low loss at radio frequencies; loss rises near its glass transition.",
-    measurement: {
+    relativePermittivity: {
+      typical: null,
+      min: 2.4,
+      max: 3.1,
       frequencyHz: 1e6,
-      frequencyLabel: "1 MHz",
-      temperatureC: 25,
-      permittivityRegime: "frequency-dependent",
-      notes: "Amorphous bulk sample.",
+      temperatureC: null,
+      status: "VERIFIED-RANGE",
+      kind: "frequency-dependent",
+      highFrequency: null,
+      note: "Supplier ranges 2.4-3.1 at 1 MHz. One producer grade gives 2.5 at 100 Hz.",
     },
-    source:
-      "Candidate reference (not checked): Kao, Dielectric Phenomena in Solids (Elsevier, 2004); CRC Handbook of Chemistry and Physics (CRC Press).",
+    lossTangent: {
+      typical: 4e-4,
+      min: null,
+      max: null,
+      frequencyHz: 1e6,
+      temperatureC: null,
+      status: "QUESTIONABLE",
+      note: "One producer grade gives 4 x 10^-4 at both 100 Hz and 1 MHz. A supplier gives 2 x 10^-4 at 1 kHz. Not supported as a 1 MHz value of 2 x 10^-4.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S4", "S5", "S6"],
     verificationStatus: "pending",
   },
   {
     id: "polymer-polyimide",
-    name: "Polyimide (Kapton-type film)",
+    name: "Polyimide (Kapton HN)",
     category: "polymer",
+    grade: "DuPont Kapton HN, 25 µm film (thickness-dependent)",
     description:
       "High-temperature aromatic polymer film that retains its insulation properties over a wide temperature range.",
     applications: [
@@ -127,24 +451,35 @@ export const materials: DielectricMaterial[] = [
       "Motor slot and winding insulation",
       "High-temperature tapes and films",
     ],
-    relativePermittivity: { typical: 3.4, min: 3.2, max: 3.5 },
-    lossTangent: { typical: 0.003, min: 0.002, max: 0.004 },
-    lossTangentNote: "Loss rises with temperature and humidity.",
-    measurement: {
+    relativePermittivity: {
+      typical: 3.4,
+      min: 3.4,
+      max: 3.5,
       frequencyHz: 1e3,
-      frequencyLabel: "1 kHz",
       temperatureC: 23,
-      permittivityRegime: "frequency-dependent",
-      notes: "Film grade and moisture content affect values.",
+      status: "VERIFIED",
+      kind: "frequency-dependent",
+      highFrequency: null,
+      note: "1 kHz, 23 °C, 50% RH (DuPont). One extraction of the same sheet reads 3.5 and one distributor labels 3.4 as 1 MHz; treat 3.4 as supported but not exact.",
     },
-    source:
-      "Candidate reference (not checked): manufacturer datasheet for Kapton polyimide film (DuPont); Callister & Rethwisch, Materials Science and Engineering (Wiley).",
+    lossTangent: {
+      typical: 1.8e-3,
+      min: 1.8e-3,
+      max: 2.6e-3,
+      frequencyHz: 1e3,
+      temperatureC: 23,
+      status: "CORRECT",
+      note: "1 kHz, 23 °C, 50% RH. 25 µm: 1.8 x 10^-3; 50 and 75 µm: 2.0 x 10^-3; 125 µm: 2.6 x 10^-3.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S1"],
     verificationStatus: "pending",
   },
   {
     id: "polymer-epoxy",
     name: "Epoxy resin (unfilled)",
     category: "polymer",
+    grade: "Unfilled cured epoxy (system-dependent)",
     description:
       "Thermoset resin used for potting, encapsulation and laminates. Properties depend strongly on formulation.",
     applications: [
@@ -152,24 +487,35 @@ export const materials: DielectricMaterial[] = [
       "Matrix for printed circuit board laminates",
       "Insulating coatings",
     ],
-    relativePermittivity: { typical: 3.8, min: 3.5, max: 4.5 },
-    lossTangent: { typical: 0.02, min: 0.005, max: 0.03 },
-    lossTangentNote: "Highly formulation- and cure-dependent; absorbed moisture increases loss.",
-    measurement: {
-      frequencyHz: 1e6,
-      frequencyLabel: "1 MHz",
-      temperatureC: 25,
-      permittivityRegime: "frequency-dependent",
-      notes: "Cured unfilled resin; filled grades differ.",
+    relativePermittivity: {
+      typical: null,
+      min: null,
+      max: 6.0,
+      frequencyHz: null,
+      temperatureC: null,
+      status: "VERIFIED-RANGE",
+      kind: "frequency-dependent",
+      highFrequency: null,
+      note: "Generic upper bound of 6.0 for epoxies. Example systems: 3.28-3.46 at 60 Hz to 1 MHz, 23-25 °C (for example 3.46 at 60 Hz, 3.28 at 1 kHz, 3.33 at 1 MHz). Values are system-specific.",
     },
-    source:
-      "Candidate reference (not checked): Callister & Rethwisch, Materials Science and Engineering (Wiley); Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
+    lossTangent: {
+      typical: null,
+      min: 0.003,
+      max: 0.05,
+      frequencyHz: null,
+      temperatureC: null,
+      status: "VERIFIED-RANGE",
+      note: "0.003-0.03 at 1 kHz; up to 0.05 at 1 MHz; example systems at 23-25 °C. The range spans two frequencies and is not a single-condition value.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S7", "S8"],
     verificationStatus: "pending",
   },
   {
     id: "ceramic-alumina",
     name: "Alumina (96% Al2O3)",
     category: "ceramic",
+    grade: "96% alumina (CoorsTek AD-96 reference)",
     description:
       "Polycrystalline aluminum oxide ceramic with good mechanical strength and low loss at radio frequencies.",
     applications: [
@@ -177,24 +523,35 @@ export const materials: DielectricMaterial[] = [
       "High-voltage insulators",
       "RF and microwave components",
     ],
-    relativePermittivity: { typical: 9.5, min: 9.0, max: 10.0 },
-    lossTangent: { typical: 0.0003, min: 0.0001, max: 0.0005 },
-    lossTangentNote: "Loss depends strongly on purity and grain boundary glassy phase.",
-    measurement: {
+    relativePermittivity: {
+      typical: 9.0,
+      min: 8.8,
+      max: 9.3,
       frequencyHz: 1e6,
-      frequencyLabel: "1 MHz",
       temperatureC: 25,
-      permittivityRegime: "frequency-dependent",
-      notes: "Sintered 96% grade; higher purity grades differ.",
+      status: "CORRECT",
+      kind: "frequency-dependent",
+      highFrequency: null,
+      note: "CoorsTek AD-96 at 1 MHz, 25 °C. Vendor spread 8.8-9.3. A conference paper measured 8.76-8.89 near 531 MHz; that frequency is outside the range.",
     },
-    source:
-      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press); Callister & Rethwisch, Materials Science and Engineering (Wiley).",
+    lossTangent: {
+      typical: 2e-4,
+      min: null,
+      max: null,
+      frequencyHz: 1e6,
+      temperatureC: 25,
+      status: "VERIFIED-RANGE",
+      note: "CoorsTek AD-96 at 1 MHz, 25 °C. Another vendor gives 1.1 x 10^-3 at 1 kHz; a conference paper gives about 6.2 x 10^-4 near 531 MHz. Different conditions, so not used as range limits.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S9", "S10", "S11"],
     verificationStatus: "pending",
   },
   {
     id: "ceramic-batio3",
     name: "Barium titanate (BaTiO3, polycrystalline)",
     category: "ceramic",
+    grade: "Polycrystalline; grain-size dependent",
     description:
       "Ferroelectric ceramic with very high permittivity that peaks near its Curie temperature of about 120 °C.",
     applications: [
@@ -202,25 +559,35 @@ export const materials: DielectricMaterial[] = [
       "Piezoelectric and ferroelectric transducers",
       "Positive temperature coefficient thermistors",
     ],
-    relativePermittivity: { typical: 1500, min: 1000, max: 5000 },
-    lossTangent: { typical: 0.015, min: 0.005, max: 0.03 },
-    lossTangentNote: "Loss and permittivity vary strongly with temperature, DC bias field and dopants.",
-    measurement: {
+    relativePermittivity: {
+      typical: null,
+      min: 1280,
+      max: 4000,
       frequencyHz: 1e3,
-      frequencyLabel: "1 kHz",
-      temperatureC: 25,
-      permittivityRegime: "frequency-dependent",
-      notes:
-        "Well below the Curie temperature, which depends on composition; values change sharply near it. Commercial grades span a wide range, so the typical value is representative only.",
+      temperatureC: null,
+      status: "VERIFIED-RANGE",
+      kind: "temperature-dependent",
+      highFrequency: null,
+      note: "Room temperature (1 kHz where stated). Coarse-grained ceramic about 1500-2000; fine-grained about 3500-4000; one sol-gel study 1280. Another study gives 7200 at 127 °C (1 kHz), near the Curie point of about 120-130 °C.",
     },
-    source:
-      "Candidate reference (not checked): Kao, Dielectric Phenomena in Solids (Elsevier, 2004); CRC Handbook of Chemistry and Physics (CRC Press).",
+    lossTangent: {
+      typical: 0.016,
+      min: null,
+      max: null,
+      frequencyHz: 1e3,
+      temperatureC: null,
+      status: "VERIFIED-RANGE",
+      note: "About 1.6% at 1 kHz, room temperature, from one sol-gel ceramic study. Single source, so no range is given.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S12", "S13", "S14"],
     verificationStatus: "pending",
   },
   {
     id: "ceramic-steatite",
     name: "Steatite (magnesium silicate ceramic)",
     category: "ceramic",
+    grade: "IEC 60672 steatite types (range across grades)",
     description:
       "Relatively low-loss talc-based ceramic historically used for radio-frequency insulators and components.",
     applications: [
@@ -228,24 +595,35 @@ export const materials: DielectricMaterial[] = [
       "Resistor and coil formers",
       "Insulating supports for electronic assemblies",
     ],
-    relativePermittivity: { typical: 6.0, min: 5.5, max: 6.5 },
-    lossTangent: { typical: 0.0003, min: 0.0002, max: 0.0005 },
-    lossTangentNote: "Manufacturer-dependent; loss rises with humidity and firing variation.",
-    measurement: {
+    relativePermittivity: {
+      typical: null,
+      min: 5.7,
+      max: 6.5,
       frequencyHz: 1e6,
-      frequencyLabel: "1 MHz",
-      temperatureC: 25,
-      permittivityRegime: "frequency-dependent",
-      notes: "Commercial grade; composition varies by supplier.",
+      temperatureC: null,
+      status: "VERIFIED",
+      kind: "frequency-dependent",
+      highFrequency: null,
+      note: "Summary range across steatite types at 1 MHz, room temperature. One supplier states 7.5 or less.",
     },
-    source:
-      "Candidate reference (not checked): manufacturer datasheets for steatite grades; general ceramic dielectric references (to be identified).",
+    lossTangent: {
+      typical: null,
+      min: 1e-3,
+      max: 6e-3,
+      frequencyHz: 1e6,
+      temperatureC: null,
+      status: "CORRECT",
+      note: "Summary range at 1 MHz, room temperature, grade-dependent. One supplier states 1 x 10^-3 or less. No retrieved source supports 3 x 10^-4.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S15", "S16"],
     verificationStatus: "pending",
   },
   {
     id: "glass-fused-silica",
     name: "Fused silica",
     category: "glass",
+    grade: "High-purity synthetic (Corning HPFS 7980)",
     description:
       "High-purity amorphous silicon dioxide with very low loss and a stable permittivity over a wide frequency range.",
     applications: [
@@ -253,24 +631,35 @@ export const materials: DielectricMaterial[] = [
       "High-purity insulators and feedthroughs",
       "Laboratory glassware and optical fibre preforms",
     ],
-    relativePermittivity: { typical: 3.8, min: 3.78, max: 3.82 },
-    lossTangent: { typical: 0.0001, min: 0.00005, max: 0.0003 },
-    lossTangentNote: "Very low loss; impurities, including OH groups, can raise loss.",
-    measurement: {
-      frequencyHz: 1e6,
-      frequencyLabel: "1 MHz",
+    relativePermittivity: {
+      typical: 3.79,
+      min: 3.79,
+      max: 3.82,
+      frequencyHz: null,
       temperatureC: 25,
-      permittivityRegime: "frequency-dependent",
-      notes: "High-purity synthetic grade.",
+      status: "VERIFIED",
+      kind: "frequency-dependent",
+      highFrequency: null,
+      note: "3.79 at 100 Hz to 10 kHz (Corning, 25 °C). 3.82 at 1 MHz (Accuratus).",
     },
-    source:
-      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press); Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
+    lossTangent: {
+      typical: 2e-5,
+      min: null,
+      max: null,
+      frequencyHz: null,
+      temperatureC: 25,
+      status: "QUESTIONABLE",
+      note: "2 x 10^-5 at 100 Hz to 10 kHz (Corning, 25 °C); 2 x 10^-5 at 1 MHz (Accuratus). An aggregator gives 1.1 x 10^-4 without a grade; not used.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S17", "S18"],
     verificationStatus: "pending",
   },
   {
     id: "glass-soda-lime",
     name: "Soda-lime glass",
     category: "glass",
+    grade: "Composition-dependent (SCHOTT B 270 reference)",
     description:
       "Common window and container glass with comparatively high permittivity and loss.",
     applications: [
@@ -278,24 +667,35 @@ export const materials: DielectricMaterial[] = [
       "Low-frequency insulating parts",
       "Reference material in dielectric education",
     ],
-    relativePermittivity: { typical: 6.9, min: 6.5, max: 7.5 },
-    lossTangent: { typical: 0.005, min: 0.002, max: 0.02 },
-    lossTangentNote: "Loss increases strongly with temperature and alkali content.",
-    measurement: {
+    relativePermittivity: {
+      typical: 7.0,
+      min: 7.0,
+      max: 7.75,
       frequencyHz: 1e6,
-      frequencyLabel: "1 MHz",
-      temperatureC: 25,
-      permittivityRegime: "frequency-dependent",
-      notes: "Composition varies by manufacturer.",
+      temperatureC: null,
+      status: "VERIFIED-RANGE",
+      kind: "frequency-dependent",
+      highFrequency: null,
+      note: "SCHOTT B 270 gives 7.0 at 1 MHz. Other soda-lime float glass gives 7.3-7.75; one supplier gives 7.75 at 20 °C. Composition changes these values.",
     },
-    source:
-      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press); Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
+    lossTangent: {
+      typical: 3e-3,
+      min: null,
+      max: null,
+      frequencyHz: 1e6,
+      temperatureC: null,
+      status: "QUESTIONABLE",
+      note: "SCHOTT B 270 datasheet at 1 MHz (30 x 10^-4). Applies to that composition only; temperature not stated. Not supported as a general soda-lime value.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S19", "S34"],
     verificationStatus: "pending",
   },
   {
     id: "glass-borosilicate",
-    name: "Borosilicate glass",
+    name: "Borosilicate glass (BOROFLOAT 33)",
     category: "glass",
+    grade: "SCHOTT BOROFLOAT 33",
     description:
       "Low-expansion glass with moderate permittivity, used where thermal shock resistance matters.",
     applications: [
@@ -303,24 +703,35 @@ export const materials: DielectricMaterial[] = [
       "Sealed electrical feedthroughs",
       "Lamp envelopes",
     ],
-    relativePermittivity: { typical: 4.7, min: 4.6, max: 5.0 },
-    lossTangent: { typical: 0.004, min: 0.001, max: 0.01 },
-    lossTangentNote: "Loss increases with temperature and alkali content.",
-    measurement: {
+    relativePermittivity: {
+      typical: 4.6,
+      min: null,
+      max: null,
       frequencyHz: 1e6,
-      frequencyLabel: "1 MHz",
       temperatureC: 25,
-      permittivityRegime: "frequency-dependent",
-      notes: "Commercial borosilicate grade.",
+      status: "CORRECT",
+      kind: "frequency-dependent",
+      highFrequency: null,
+      note: "SCHOTT BOROFLOAT 33 datasheet at 1 MHz, 25 °C.",
     },
-    source:
-      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press); Callister & Rethwisch, Materials Science and Engineering (Wiley).",
+    lossTangent: {
+      typical: 3.7e-3,
+      min: null,
+      max: null,
+      frequencyHz: 1e6,
+      temperatureC: 25,
+      status: "CORRECT",
+      note: "SCHOTT BOROFLOAT 33 datasheet at 1 MHz, 25 °C. A reseller table lists 4.8 x 10^-3 at 0.001 GHz (1 MHz), which conflicts; the SCHOTT datasheet is preferred.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S20"],
     verificationStatus: "pending",
   },
   {
     id: "natural-muscovite-mica",
     name: "Muscovite mica",
     category: "natural",
+    grade: "Muscovite sheet (orientation not stated)",
     description:
       "Layered natural silicate that splits into thin, flexible, heat-stable sheets with good insulation.",
     applications: [
@@ -328,24 +739,35 @@ export const materials: DielectricMaterial[] = [
       "Electrical sheet insulators",
       "Dielectric spacers in precision capacitors",
     ],
-    relativePermittivity: { typical: 6.5, min: 5.4, max: 7.0 },
-    lossTangent: { typical: 0.0004, min: 0.0001, max: 0.001 },
-    lossTangentNote: "Depends on orientation to the cleavage plane and on impurities.",
-    measurement: {
-      frequencyHz: 1e6,
-      frequencyLabel: "1 MHz",
-      temperatureC: 25,
-      permittivityRegime: "frequency-dependent",
-      notes: "Natural sheet; orientation-dependent.",
+    relativePermittivity: {
+      typical: null,
+      min: 6,
+      max: 7,
+      frequencyHz: null,
+      temperatureC: 15,
+      status: "VERIFIED-RANGE",
+      kind: "frequency-dependent",
+      highFrequency: null,
+      note: "Supplier range at 15 °C. The measurement frequency is not stated by the source.",
     },
-    source:
-      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press); Kao, Dielectric Phenomena in Solids (Elsevier, 2004).",
+    lossTangent: {
+      typical: null,
+      min: 1e-4,
+      max: 4e-4,
+      frequencyHz: null,
+      temperatureC: 15,
+      status: "VERIFIED-RANGE",
+      note: "Power factor 0.0001-0.0004 at 15 °C per supplier. Measurement frequency not stated, so that condition is unverified.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S21"],
     verificationStatus: "pending",
   },
   {
     id: "natural-quartz",
     name: "Quartz (crystalline SiO2)",
     category: "natural",
+    grade: "Alpha-quartz single crystal (direction-dependent)",
     description:
       "Crystalline silica with low loss and piezoelectric behaviour: it converts mechanical stress into voltage and back.",
     applications: [
@@ -353,49 +775,70 @@ export const materials: DielectricMaterial[] = [
       "Piezoelectric sensors",
       "Optical and insulating components",
     ],
-    relativePermittivity: { typical: 4.5, min: 4.3, max: 4.6 },
-    lossTangent: { typical: 0.0001, min: 0.00005, max: 0.0005 },
-    lossTangentNote: "Very low loss; values depend on crystal axis and purity.",
-    measurement: {
-      frequencyHz: 1e6,
-      frequencyLabel: "1 MHz",
-      temperatureC: 25,
-      permittivityRegime: "frequency-dependent",
-      notes: "Values quoted perpendicular to the c-axis; anisotropic.",
+    relativePermittivity: {
+      typical: null,
+      min: 4.36,
+      max: 4.6,
+      frequencyHz: null,
+      temperatureC: 30,
+      status: "VERIFIED",
+      kind: "anisotropic",
+      highFrequency: null,
+      note: "Parallel to the c-axis: 4.58-4.60. Perpendicular to the c-axis: 4.36 (30 °C; frequency-independent per source). A supplier gives 4.34 and 4.27 at 30 MHz, so sources differ.",
     },
-    source:
-      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press); Kittel, Introduction to Solid State Physics (Wiley).",
+    lossTangent: {
+      typical: null,
+      min: null,
+      max: null,
+      frequencyHz: null,
+      temperatureC: null,
+      status: "UNVERIFIED",
+      note: "No source retrieved for a loss value.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S22", "S23"],
     verificationStatus: "pending",
   },
   {
     id: "natural-dry-pine-wood",
     name: "Pine wood (oven-dry)",
     category: "natural",
+    grade: null,
     description:
       "Organic natural material whose permittivity and loss are dominated by moisture content and grain direction.",
     applications: [
       "Teaching demonstrations of moisture effects on dielectrics",
       "Historical insulating parts in low-stress equipment",
     ],
-    relativePermittivity: { typical: 2.5, min: 2.0, max: 3.5 },
-    lossTangent: { typical: 0.02, min: 0.01, max: 0.05 },
-    lossTangentNote: "Dominated by moisture; values rise sharply with humidity.",
-    measurement: {
-      frequencyHz: 1e6,
-      frequencyLabel: "1 MHz",
-      temperatureC: 20,
-      permittivityRegime: "frequency-dependent",
-      notes:
-        "Oven-dried sample; values depend on grain direction and density. In service, moisture content changes values strongly.",
+    relativePermittivity: {
+      typical: null,
+      min: null,
+      max: null,
+      frequencyHz: null,
+      temperatureC: null,
+      status: "UNVERIFIED",
+      kind: null,
+      highFrequency: null,
+      note: "No numeric oven-dry value retrieved. Moisture, grain direction, density, temperature and frequency all affect the value.",
     },
-    source:
-      "Candidate reference (not checked): Kollmann and Cote, Principles of Wood Science and Technology (Springer); CRC Handbook of Chemistry and Physics (CRC Press).",
+    lossTangent: {
+      typical: null,
+      min: null,
+      max: null,
+      frequencyHz: null,
+      temperatureC: null,
+      status: "UNVERIFIED",
+      note: "No numeric value retrieved. Torgovnikov (1993) is recommended but was not read.",
+    },
+    lossTangentNote: null,
+    sourceIds: [],
     verificationStatus: "pending",
   },
   {
     id: "liquid-mineral-oil",
     name: "Mineral insulating oil",
     category: "liquid",
+    grade: "Unused mineral insulating oil (IEC 60296 category)",
     description:
       "Refined petroleum oil used to insulate and cool transformers and high-voltage equipment.",
     applications: [
@@ -403,25 +846,35 @@ export const materials: DielectricMaterial[] = [
       "High-voltage cable and capacitor impregnation",
       "Switchgear insulation",
     ],
-    relativePermittivity: { typical: 2.2, min: 2.1, max: 2.5 },
-    lossTangent: { typical: 0.0005, min: 0.0001, max: 0.002 },
-    lossTangentNote: "Loss rises rapidly with temperature and contamination or moisture.",
-    measurement: {
-      frequencyHz: 50,
-      frequencyLabel: "50 Hz",
-      temperatureC: 25,
-      permittivityRegime: "frequency-dependent",
-      notes:
-        "Unaged oil; grade and water content matter. Oil testing is often specified at elevated temperature, so these values at 25 °C may not match test-standard results.",
+    relativePermittivity: {
+      typical: null,
+      min: null,
+      max: null,
+      frequencyHz: null,
+      temperatureC: null,
+      status: "UNVERIFIED",
+      kind: null,
+      highFrequency: null,
+      note: "No source retrieved for permittivity.",
     },
-    source:
-      "Candidate reference (not checked): IEC 60296 (unused mineral insulating oils for transformers and switchgear); CRC Handbook of Chemistry and Physics (CRC Press).",
+    lossTangent: {
+      typical: null,
+      min: 6e-4,
+      max: 3e-3,
+      frequencyHz: null,
+      temperatureC: 90,
+      status: "UNVERIFIED",
+      note: "Vendor typicals at 90 °C, 40-62 Hz: 6 x 10^-4 (Repsol Maker Electra 2X) and 3 x 10^-3 (PSO datasheet, not in the source list). IEC 60296 limit at 90 °C: 5 x 10^-3 or less for unused oil. Not comparable with 25 °C values.",
+    },
+    lossTangentNote: null,
+    sourceIds: ["S24", "S25"],
     verificationStatus: "pending",
   },
   {
     id: "liquid-deionized-water",
     name: "Deionized water",
     category: "liquid",
+    grade: "Pure deionized water",
     description:
       "Strongly polar liquid with a very high static permittivity that falls with frequency due to molecular relaxation.",
     applications: [
@@ -429,26 +882,28 @@ export const materials: DielectricMaterial[] = [
       "Capacitive sensing of moisture and water content",
       "Dielectric heating and microwave absorption studies",
     ],
-    relativePermittivity: { typical: 78.4, min: 78.0, max: 78.5 },
+    relativePermittivity: {
+      typical: 78.4,
+      min: null,
+      max: null,
+      frequencyHz: null,
+      temperatureC: 25,
+      status: "VERIFIED",
+      kind: "static",
+      highFrequency: 5,
+      note: "Static (low-frequency) value, valid well below the Debye relaxation near 20 GHz at 25 °C. Sources give 78.38 and 78.4. The high-frequency value of about 5 comes from one model and is not independently confirmed.",
+    },
     lossTangent: null,
     lossTangentNote:
-      "Not a single value: loss is dominated by ionic conductivity and depends on purity, frequency and temperature.",
-    measurement: {
-      frequencyHz: 0,
-      frequencyLabel: "Static (low-frequency limit)",
-      temperatureC: 25,
-      permittivityRegime: "static",
-      notes:
-        "Low-frequency limit. Permittivity falls as frequency rises toward the microwave range and decreases as temperature rises.",
-    },
-    source:
-      "Candidate reference (not checked): CRC Handbook of Chemistry and Physics (CRC Press), dielectric constant of water table.",
+      "Not a single value: at low frequency, ionic conduction and electrode polarization dominate, and no intrinsic loss tangent is defined below the relaxation region.",
+    sourceIds: ["S26", "S27", "S28"],
     verificationStatus: "pending",
   },
   {
     id: "semiconductor-silicon",
     name: "Silicon (intrinsic)",
     category: "semiconductor",
+    grade: "Intrinsic",
     description:
       "Elemental semiconductor whose dielectric response combines lattice and electronic contributions.",
     applications: [
@@ -456,25 +911,28 @@ export const materials: DielectricMaterial[] = [
       "Sensor and detector substrates",
       "Reference material for semiconductor permittivity",
     ],
-    relativePermittivity: { typical: 11.7, min: 11.5, max: 12.0 },
+    relativePermittivity: {
+      typical: 11.7,
+      min: 11.7,
+      max: 11.9,
+      frequencyHz: null,
+      temperatureC: 27,
+      status: "VERIFIED",
+      kind: "static",
+      highFrequency: null,
+      note: "Static value near 300 K. Sources give 11.7 and 11.9.",
+    },
     lossTangent: null,
     lossTangentNote:
-      "Not a single value: loss depends on free-carrier density set by doping and temperature.",
-    measurement: {
-      frequencyHz: 0,
-      frequencyLabel: "Static (DC)",
-      temperatureC: 27,
-      permittivityRegime: "static",
-      notes: "Static (low-frequency) value near 300 K.",
-    },
-    source:
-      "Candidate reference (not checked): Kittel, Introduction to Solid State Physics (Wiley); CRC Handbook of Chemistry and Physics (CRC Press), semiconductor tables.",
+      "Not a single value: loss depends on free-carrier density set by doping and resistivity, and no sourced value was found.",
+    sourceIds: ["S29", "S30"],
     verificationStatus: "pending",
   },
   {
     id: "semiconductor-germanium",
     name: "Germanium (intrinsic)",
     category: "semiconductor",
+    grade: "Intrinsic",
     description:
       "Elemental semiconductor with a higher permittivity than silicon, used in infrared optics and early transistors.",
     applications: [
@@ -482,25 +940,28 @@ export const materials: DielectricMaterial[] = [
       "Radiation detectors",
       "High-frequency transistor research",
     ],
-    relativePermittivity: { typical: 16.2, min: 16.0, max: 16.4 },
+    relativePermittivity: {
+      typical: 16.2,
+      min: 16.0,
+      max: 16.2,
+      frequencyHz: null,
+      temperatureC: 27,
+      status: "VERIFIED",
+      kind: "static",
+      highFrequency: null,
+      note: "Static value near 300 K. Sources give 16 and 16.2.",
+    },
     lossTangent: null,
     lossTangentNote:
-      "Not a single value: loss depends on free-carrier density set by doping and temperature.",
-    measurement: {
-      frequencyHz: 0,
-      frequencyLabel: "Static (DC)",
-      temperatureC: 27,
-      permittivityRegime: "static",
-      notes: "Static (low-frequency) value near 300 K.",
-    },
-    source:
-      "Candidate reference (not checked): Kittel, Introduction to Solid State Physics (Wiley); CRC Handbook of Chemistry and Physics (CRC Press), semiconductor tables.",
+      "Not a single value: loss depends on free-carrier density set by doping and resistivity, and no sourced value was found.",
+    sourceIds: ["S29", "S30"],
     verificationStatus: "pending",
   },
   {
     id: "semiconductor-gallium-arsenide",
     name: "Gallium arsenide (GaAs)",
     category: "semiconductor",
+    grade: "Intrinsic",
     description:
       "Compound III-V semiconductor used where high electron mobility and direct bandgap are needed.",
     applications: [
@@ -508,19 +969,21 @@ export const materials: DielectricMaterial[] = [
       "Optoelectronic devices and LEDs",
       "Solar cells for space applications",
     ],
-    relativePermittivity: { typical: 12.9, min: 12.5, max: 13.2 },
+    relativePermittivity: {
+      typical: 12.9,
+      min: 12.9,
+      max: 13.1,
+      frequencyHz: null,
+      temperatureC: 27,
+      status: "VERIFIED",
+      kind: "static",
+      highFrequency: 10.9,
+      note: "Static value near 300 K (sources give 12.9 and 13.1). High-frequency value of about 10.9 (10.89 or 10.9 across sources).",
+    },
     lossTangent: null,
     lossTangentNote:
-      "Not a single value: loss depends on free-carrier density, doping and frequency.",
-    measurement: {
-      frequencyHz: 0,
-      frequencyLabel: "Static (DC)",
-      temperatureC: 27,
-      permittivityRegime: "static",
-      notes: "Static (low-frequency) value near 300 K.",
-    },
-    source:
-      "Candidate reference (not checked): Kittel, Introduction to Solid State Physics (Wiley); CRC Handbook of Chemistry and Physics (CRC Press), semiconductor tables.",
+      "Not a single value: loss depends on free-carrier density, doping and frequency, and no sourced value was found.",
+    sourceIds: ["S29", "S30", "S31", "S32"],
     verificationStatus: "pending",
   },
 ];
