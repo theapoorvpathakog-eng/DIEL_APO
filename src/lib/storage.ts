@@ -3,6 +3,7 @@ export type ThemePreference = "system" | "light" | "dark";
 export const STORAGE_KEYS = {
   favourites: "diel-apo:favourites",
   recent: "diel-apo:recent",
+  compare: "diel-apo:compare",
   theme: "diel-apo:theme",
 } as const;
 

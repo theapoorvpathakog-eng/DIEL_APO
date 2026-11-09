@@ -34,7 +34,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [recent, setRecent] = useState<string[]>(() =>
     knownIds(loadIds(STORAGE_KEYS.recent)).slice(0, MAX_RECENT),
   );
-  const [compare, setCompare] = useState<string[]>([]);
+  const [compare, setCompare] = useState<string[]>(() =>
+    knownIds(loadIds(STORAGE_KEYS.compare)).slice(0, MAX_COMPARE),
+  );
   const [theme, setTheme] = useState<ThemePreference>(loadTheme);
   const [systemDark, setSystemDark] = useState(
     () => window.matchMedia("(prefers-color-scheme: dark)").matches,
@@ -60,6 +62,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     saveIds(STORAGE_KEYS.recent, recent);
   }, [recent]);
+
+  useEffect(() => {
+    saveIds(STORAGE_KEYS.compare, compare);
+  }, [compare]);
 
   useEffect(() => {
     saveTheme(theme);
